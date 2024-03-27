@@ -1,5 +1,7 @@
 import customtkinter as ctk
 from .loader import Loader
+import time
+import threading
 
 from api import Api
 
@@ -16,12 +18,15 @@ class App(ctk.CTk):
         self.geometry("1000x600")
         self.resizable(False, False)
         self.center()
-        self.after(10, self.preload)
+        threading.Thread(target=self.preload).start()
 
     def preload(self):
         self.preloader = Loader(self)
+        time.sleep(10)
         self.account = self.api.get_account()
         self.preloader.destroy()
+        
+        self.make_menu()
 
 
     def center(self):
@@ -31,3 +36,7 @@ class App(ctk.CTk):
 
     def start(self):
         self.mainloop()        
+
+
+    def make_menu(self):
+        pass
