@@ -33,3 +33,5 @@ class Team:
     @property
     def logo(self) -> str:
         return self._team["logo"]
+
+

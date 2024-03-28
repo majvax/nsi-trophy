@@ -5,6 +5,7 @@ import threading
 from api import Api
 
 
+from .team import TeamMenu
 from .league import LeagueMenu
 from .loader import Loader
 
@@ -27,7 +28,7 @@ class App(ctk.CTk):
         self.preloader = Loader(self)
         self.account = self.api.get_account()
         self.leagues = self.api.get_all_leagues()
-        self.make_menu()
+        self.make_league_menu()
         self.preloader.destroy()
         
 
@@ -41,9 +42,20 @@ class App(ctk.CTk):
         self.mainloop()        
 
 
-    def make_menu(self):
+    def make_league_menu(self):
         """
         Create the main menu
         """
         self.frame = LeagueMenu(self, self.leagues)
+        self.frame.pack(fill="both", expand=True)
+    
+    def make_team_menu(self, league, season):
+        """
+        Create the team menu
+        """
+
+        self.frame.pack_forget()
+        teams = self.api.get_teams_by_leagues_and_seasons(league.id, season)
+        self.frame.destroy()
+        self.frame = TeamMenu(self, teams)
         self.frame.pack(fill="both", expand=True)

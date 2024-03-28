@@ -1,4 +1,4 @@
-from customtkinter import CTkFont, CTkButton, CTkImage, CTkScrollableFrame, CTkEntry, StringVar
+from customtkinter import CTkFont, CTkButton, CTkImage, CTkScrollableFrame, CTkEntry, StringVar, CTkLabel, CTkFrame, CTkComboBox
 from tkinter import Event
 from typing import List
 from PIL import Image
@@ -9,6 +9,7 @@ import requests
 import threading
 
 from api.league import League
+from api.season import Season, ALL_SEASON
 
 
 class LeagueItem(CTkButton):
@@ -18,10 +19,10 @@ class LeagueItem(CTkButton):
         image = CTkImage(image)
         
         self.league = league
-        super().__init__(root, text=league.name, command=self.on_click, font=CTkFont("Segoe Boot Semilight", 30), image=image, compound="left")
+        super().__init__(root, text=league.name, command=self.on_click, font=CTkFont("Segoe Boot Semilight", 35), image=image, compound="left")
     
     def on_click(self):
-        print(self.league, "clicked")
+        self.master.master.master.master.make_team_menu(self.league, self.master.season)
 
 
 class LeagueMenu(CTkScrollableFrame):
@@ -29,24 +30,36 @@ class LeagueMenu(CTkScrollableFrame):
         super().__init__(root)
         
         self.all_leagues = [(league, league.name.lower()) for league in leagues]
+        self.season = Season(2024)
         self.leagues = leagues
         self.page_index = 0
         self.page_size = 40
         self.current_page_items = []
         
+        self.label = CTkLabel(self, text="Ligues", font=CTkFont("Segoe Boot Semilight", 40))
+        self.label.pack(fill="x", expand=True, pady=(10, 10))
+        
+        self.f = CTkFrame(self)
+        self.f.pack(fill="x", expand=True)
+        
         self.search_string = StringVar(self)
-        self.search_box = CTkEntry(self, textvariable=self.search_string, font=CTkFont("Segoe Boot Semilight", 30,))
-        self.search_box.pack(fill="x", expand=True)
+        
+        self.search_box = CTkEntry(self.f, textvariable=self.search_string, font=CTkFont("Segoe Boot Semilight", 30,))
+        self.search_box.pack(side="left", fill="x", expand=True)
+        
+        self.season_combo = CTkComboBox(self.f, font=CTkFont("Segoe Boot Semilight", 30), values=[str(season) for season in ALL_SEASON], command=self.season_change)
+        self.season_combo.pack(side="right", fill="x", expand=True)
+        
         self.debounce_delay = 0.6
         self.debounce_timer = None
-        
-        self.ui_lock = threading.Lock()
         
         # bind the search box on key add
         self.search_box.bind("<Key>", self.debounce)
         
         self.update_page()
-        
+    
+    def season_change(self, event = None):
+        self.season = Season(int(self.season_combo.get()))
     
     def load_page(self) -> List[League]:
         start = self.page_index * self.page_size
@@ -65,10 +78,8 @@ class LeagueMenu(CTkScrollableFrame):
             item = LeagueItem(self, league)
             item.pack(fill="x", expand=True)
             self.current_page_items.append(item)
-        
-        if len(page) == 0:
-            return
-                
+
+
         left_arrow = CTkButton(self, text="<", command=lambda: threading.Thread(target=self.previous_page).start(), font=CTkFont("Segoe Boot Semilight", 30))
         left_arrow.pack(side="left", fill="x", expand=True, pady=(10, 0), padx=(0, 10))
         self.current_page_items.append(left_arrow)
