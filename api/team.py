@@ -4,7 +4,6 @@ from typing import Dict
 class Team:
     def __init__(self, _json: Dict) -> None:
         self._json = _json
-        self._venue = _json["venue"]
         self._team = _json["team"]
 
     @property

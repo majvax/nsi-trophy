@@ -26,7 +26,7 @@ class Account:
     
     @property
     def request_limits(self):
-        return self._subscription.get("limit_day")
+        return self._requests.get("limit_day")
     
     @property
     def requests_used(self):

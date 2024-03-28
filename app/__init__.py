@@ -1,12 +1,15 @@
 import customtkinter as ctk
-from .loader import Loader
 import time
 import threading
 
 from api import Api
 
-ctk.FontManager.windows_load_font("app/fonts/SegoeBoot-Semilight.ttf")
 
+from .league import LeagueMenu
+from .loader import Loader
+
+
+ctk.FontManager.windows_load_font("app/fonts/SegoeBoot-Semilight.ttf")
 
 
 class App(ctk.CTk):
@@ -22,11 +25,11 @@ class App(ctk.CTk):
 
     def preload(self):
         self.preloader = Loader(self)
-        time.sleep(10)
         self.account = self.api.get_account()
+        self.leagues = self.api.get_all_leagues()
+        self.make_menu()
         self.preloader.destroy()
         
-        self.make_menu()
 
 
     def center(self):
@@ -39,4 +42,8 @@ class App(ctk.CTk):
 
 
     def make_menu(self):
-        pass
+        """
+        Create the main menu
+        """
+        self.frame = LeagueMenu(self, self.leagues)
+        self.frame.pack(fill="both", expand=True)

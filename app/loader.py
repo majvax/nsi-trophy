@@ -9,7 +9,7 @@ class Loader(CTkLabel):
         self.current = 0xe052
         self.end = 0xe0c6
         self.should_stop = False
-        self.thread = threading.Thread(target=self.animate, daemon=True)
+        self.thread = threading.Thread(target=self.animate)
         super().__init__(master, text="", font=CTkFont("Segoe Boot Semilight", 40))
         self.after(20, lambda : self.thread.start())
         self.pack(fill=BOTH, expand=True)

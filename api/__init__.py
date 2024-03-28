@@ -1,16 +1,23 @@
-from typing import Union, Dict, Optional, List
+from typing import Dict, Optional, List
 from functools import cache
 import json
 import requests
 from pathlib import Path
 from datetime import datetime, timedelta
-
+from zlib import crc32 
 
 from .account import Account
 from .league import League
 from .team import Team
 from .season import Season
 
+
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Season):
+            return obj.season
+        return json.JSONEncoder.default(self, obj)
 
 class Api:
     def  __init__(self, api_key):
@@ -26,24 +33,25 @@ class Api:
             url += "?"
             for key, value in kwargs.items():
                 url += f"{key}={value}&"
-        print(url)
-        return  url
+        return url
 
 
-    def _make_api_call(self, path: str, params: Optional[Dict] = None) -> Dict:
-        file = self.cached_directory / Path(path.replace("/", "_").replace(":", "") + ".json")
+    def _make_api_call(self, path: List[str], params: Optional[Dict] = None) -> Dict:
+        # on crée un fichier pour chaque requête avec un nom unique basé sur le path et les paramètres.
+        file = self.cached_directory / Path(("".join(i for i in path)).replace("/", "_").replace(":", "") + format(crc32(json.dumps(params, cls=CustomJSONEncoder).encode()), "08x") + ".json")
         if file.exists():
             with open(file, "r") as f:
                 _json = json.load(f)
-                if datetime.fromisoformat(_json["timestamp"]) > datetime.now() - timedelta(hours=1):
+                if datetime.fromisoformat(_json["timestamp"]) > datetime.now() - timedelta(days=1):
                     # on charge la donnée depuis le cache pour éviter d'utiliser toute nos requêtes.
                     return _json["data"]
                 elif self.get_account().requests_remaining <= 2:
                     # on charge la donnée depuis le cache même si elle est périmé mais qu'on a plus de requête.
                     return _json["data"]
 
-        
-        url = self._build_url(path, **params)
+        if params is None:
+            params = {}
+        url = self._build_url(*path, **params)
         request = requests.get(url, headers=self.headers)
         data = request.json()
         if request.status_code != 200:
@@ -58,12 +66,25 @@ class Api:
     
     @cache
     def get_account(self) -> Optional[Account]:
-        data = self._make_api_call("status")
+        """
+        Get the account information related to the API key.
+        we're not caching this data over file because it's not using any of our quota.
+        
+        API call: GET /status
+        """
+        url = self._build_url("status")
+        request = requests.get(url, headers=self.headers)
+        data = request.json()
         if data.get("response").get("account") is not None:
             return Account(data)
 
+
     def get_all_leagues(self) -> Optional[List[League]]:
-        data = self._make_api_call("leagues")
+        """
+        Get all the leagues available in the API.        
+        API call: GET /leagues
+        """
+        data = self._make_api_call(["leagues"])
         league_list = []
 
         for league in data["response"]:
@@ -73,7 +94,11 @@ class Api:
 
 
     def get_teams_by_leagues_and_seasons(self, league_id, season: Season) -> Optional[List[Team]]:
-        data = self._make_api_call("teams", {"league": league_id, "season": season})
+        """
+        Get all the teams in a league for a specific season.
+        API call: GET /teams?league={league_id}&season={season}
+        """
+        data = self._make_api_call(["teams"], {"league": league_id, "season": season})
         team_list = []
 
         for team in data["response"]:

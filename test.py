@@ -17,8 +17,12 @@ leagues = api.get_all_leagues()
 
 for league in leagues:
     if league.country_code == "FR":
-        if league.name == "Ligue 1":
-            teams = api.get_teams_by_leagues(league.id, Season(2023))
-            rich.print(teams)
+        if league.name == "Ligue 2":
+            teams = api.get_teams_by_leagues_and_seasons(league.id, Season(2023))
+
+
+if teams:
+    for team in teams:
+        rich.print(team.logo, team.name, team.id)
 
 

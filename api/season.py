@@ -21,4 +21,5 @@ class Season:
     
     def __repr__(self) -> str:
         return f"Season({self.season})"
+
     
