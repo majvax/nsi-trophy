@@ -33,7 +33,7 @@ class LeagueMenu(CTkScrollableFrame):
         self.season = Season(2024)
         self.leagues = leagues
         self.page_index = 0
-        self.page_size = 40
+        self.page_size = 20
         self.current_page_items = []
         
         self.label = CTkLabel(self, text="Ligues", font=CTkFont("Segoe Boot Semilight", 40))
@@ -75,6 +75,7 @@ class LeagueMenu(CTkScrollableFrame):
         # Load the new page
         page = self.load_page()
         for league in page:
+            print("made item")
             item = LeagueItem(self, league)
             item.pack(fill="x", expand=True)
             self.current_page_items.append(item)

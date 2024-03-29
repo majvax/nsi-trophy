@@ -10,6 +10,7 @@ from .account import Account
 from .league import League
 from .team import Team
 from .season import Season
+from .statistics import Statistics
 
 
 
@@ -101,7 +102,19 @@ class Api:
         data = self._make_api_call(["teams"], {"league": league_id, "season": season})
         team_list = []
 
+        if not data.get("response"):
+            return []
+
         for team in data["response"]:
             team_list.append(Team(team))
     
         return team_list if team_list != [] else None
+    
+
+    def get_team_statistiques(self, league_id: int, season: Season, team_id: int) -> Optional[Statistics]:
+        """
+        Get all the stat froma team
+        API call: GET /teams/statistiques?league={league_id}&season={season}&team={team_id}
+        """
+        data = self._make_api_call(["teams", "statistics"], {"league": league_id, "season": season, "team": team_id})
+        return Statistics(data["response"])

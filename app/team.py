@@ -1,4 +1,4 @@
-from customtkinter import CTkFont, CTkButton, CTkImage, CTkFrame, CTkEntry, StringVar, CTkScrollableFrame, CTkLabel, CTkComboBox
+from customtkinter import CTkFont, CTkButton, CTkImage, CTkEntry, StringVar, CTkScrollableFrame, CTkLabel
 from tkinter import Event
 from typing import List
 from PIL import Image
@@ -9,7 +9,8 @@ import requests
 import threading
 
 from api.team import Team
-
+from api.season import Season
+from api.league import League
 
 
 class TeamItem(CTkButton):
@@ -19,15 +20,20 @@ class TeamItem(CTkButton):
         image = CTkImage(image)
         
         self.team = team
+
         super().__init__(root, text=team.name, command=self.on_click, font=CTkFont("Segoe Boot Semilight", 35), image=image, compound="left")
     
     def on_click(self):
-        print(self.team, "clicked")
+        self.master.master.master.master.make_stat_menu(self.master.league, self.master.season, self.team)
+
 
 class TeamMenu(CTkScrollableFrame):
-    def __init__(self, root, teams: List[Team]):
+    def __init__(self, root, league: League, teams: List[Team], season: Season):
         super().__init__(root)
         
+        self.league = league
+        self.season = season
+
         self.all_teams = [(team, team.name.lower()) for team in teams]
         self.teams = teams
         self.page_index = 0

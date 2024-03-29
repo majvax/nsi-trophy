@@ -1,5 +1,4 @@
 import customtkinter as ctk
-import time
 import threading
 
 from api import Api
@@ -8,6 +7,7 @@ from api import Api
 from .team import TeamMenu
 from .league import LeagueMenu
 from .loader import Loader
+from .statistic import StatMenu
 
 
 ctk.FontManager.windows_load_font("app/fonts/SegoeBoot-Semilight.ttf")
@@ -25,6 +25,7 @@ class App(ctk.CTk):
         threading.Thread(target=self.preload).start()
 
     def preload(self):
+        print("loading menu")
         self.preloader = Loader(self)
         self.account = self.api.get_account()
         self.leagues = self.api.get_all_leagues()
@@ -57,5 +58,13 @@ class App(ctk.CTk):
         self.frame.pack_forget()
         teams = self.api.get_teams_by_leagues_and_seasons(league.id, season)
         self.frame.destroy()
-        self.frame = TeamMenu(self, teams)
+        self.frame = TeamMenu(self, league, teams, season)
+        self.frame.pack(fill="both", expand=True)
+    
+
+    def make_stat_menu(self, league, season, team):
+        self.frame.pack_forget()
+        stats = self.api.get_team_statistiques(league.id, season, team.id)
+        self.frame.destroy()
+        self.frame = StatMenu(self, league, season, team, stats)
         self.frame.pack(fill="both", expand=True)
